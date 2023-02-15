@@ -1,0 +1,112 @@
+---
+title: "Exemple d’EDA - éruptions d’un geyser"
+output: html_notebook
+---
+
+Les données dans le fichier faithful représentent les délais entre éruptions et les
+durées des éruptions d’un geyser dans le parc Yellowstone aux USA. Nous allons examiner
+la distribution des ces données à l’aide des graphiques et des statistiques de base. C’est une
+étape préalable obligatoire avant toute analyse et modélisation statistique
+```{r}
+help(faithful)
+data(faithful)
+attach(faithful)
+summary(eruptions)
+fivenum(eruptions) # résumé à 5 nombres de Tukey
+```
+
+
+Nous pouvons calculer les statistiques de base selon nos besoins.
+```{r}
+mean(eruptions)
+median(eruptions)
+min(eruptions)
+range(eruptions)
+quantile(eruptions)
+var(eruptions) # variance
+sqrt(var(eruptions)) # écart type
+```
+
+Les graphiques tige et feuilles donnent une bonne idée de la distribution. L’histogramme
+est meilleur pour des grandes ensembles de données.
+```{r}
+stem(eruptions)
+hist(eruptions)
+# classes plus petites, tracé de la densité
+hist(eruptions, seq(1.6, 5.2, 0.2), prob=TRUE) ;
+lines(density(eruptions, bw=0.1))
+rug(eruptions) # les données elles-même
+```
+
+
+Des tracés de densité plus sophistiqués sont obtenus avec *density*. La largeur de bande
+*(bw)* est choisie par tâtonnement parce que la valeur par défaut donne trop de lissage. Nous
+pouvons tracer la fonction de répartition empirique à l’aide de la fonction **ecdf** définie par
+
+$$ Fn(t) = \sum \limits _{i=1}^n {1} _{x_{i}<t} $$
+```{r}
+plot(ecdf(eruptions), do.points=FALSE, verticals=TRUE)
+```
+
+La distribution est loin de quelque chose de standard. Mais nous pouvons isoler les éruptions autour de la mode de droite qui sont de durée plus grande que 3 minutes. Nous ajustons une distribution normale que nous superposons sur le cdf.
+```{r}
+long <- eruptions[eruptions > 3]
+plot(ecdf(long), do.points=FALSE, verticals=TRUE)
+x <- seq(3, 5.4, 0.01)
+lines(x, pnorm(x, mean=mean(long), sd=sqrt(var(long))), lty=3)
+```
+
+Un graphique de quantiles peut nous aider.
+```{r}
+par(pty='s') # tracé carré
+qqnorm(long) ; qqline(long)
+```
+
+Il montre une ajustage raisonnable, mais la queue droite est plus courte qu’une distribution
+normale. Nous comparons avec des données simulées d’une distribution-t
+```{r}
+x <- rt(250, df=5)
+qqnorm(x) ; qqline(x)
+```
+
+qui normalement (étant un échantillon aléatoire) montre des queues plus longues qu’attendues pour une loi normale. Nous pouvons faire un graphique quantile contre la distribution
+t par
+```{r}
+qqplot(qt(ppoints(250), df=5), x, xlab="Q-Q graphique pour t")
+qqline(x)
+```
+
+Finalement on peut appliquer deux tests de normalité.
+```{r}
+library(ctest)
+shapiro.test(long)
+ks.test(long, "pnorm", mean=mean(long), sd=sqrt(var(long)))
+```
+
+---
+Langage R
+MASTER I
+9 mai 2005
+
+
+
+install.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
